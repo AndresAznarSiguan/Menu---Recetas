@@ -340,7 +340,7 @@ function setMainTabUI(){
   $("fabDrawer").style.display = (mainTab==="calendario" && calState.view!=="year") ? "" : "none";
   if(mainTab!=="calendario") closeDrawer();
 }
-let mainTab = "recetas";
+let mainTab = "calendario";
 $("tabRecetas").onclick = ()=>{ mainTab="recetas"; setMainTabUI(); };
 $("tabCalendario").onclick = ()=>{ mainTab="calendario"; setMainTabUI(); renderCalendar(); };
 $("filter").onchange = ()=>{ filterValue = $("filter").value; renderList(); };
@@ -379,7 +379,7 @@ function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
 
 /* ================= calendar state ================= */
 const TODAY = todayISO();
-let calState = { view:"year", year:new Date().getFullYear(), month:new Date().getMonth(), weekStart:null, day:null };
+let calState = { view:"week", year:new Date().getFullYear(), month:new Date().getMonth(), weekStart:startOfWeekMonday(new Date()), day:null };
 
 function renderCrumbs(){
   const c = [];
@@ -1006,7 +1006,7 @@ syncScrim.addEventListener("click", e=>{ if(e.target===syncScrim) closeSync(); }
   try{
     try{ if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); } }catch(e){}
     try{ if(navigator.storage && navigator.storage.persist){ await navigator.storage.persist(); } }catch(e){}
-    await openDB(); await loadAll(); refreshDatalist(); setMainTabUI(); populateFilter(); renderList();
+    await openDB(); await loadAll(); refreshDatalist(); setMainTabUI(); populateFilter(); renderList(); renderCalendar();
     // restore sync session if previously logged in
     try{
       if(loadSbConfig()){
