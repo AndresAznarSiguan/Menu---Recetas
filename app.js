@@ -417,12 +417,36 @@ function showDay(dateIso){ calState = {view:"day", year:parseISODate(dateIso).ge
 function goToDay(dateIso){ mainTab="calendario"; setMainTabUI(); showDay(dateIso); }
 
 function renderCalendar(){
+  renderLevelSwitcher();
   renderCrumbs();
   $("fabDrawer").style.display = (mainTab==="calendario" && calState.view!=="year") ? "" : "none";
   if(calState.view==="year") renderYearView();
   else if(calState.view==="month") renderMonthView();
   else if(calState.view==="week") renderWeekView();
   else renderDayView();
+}
+
+/* ---------- level switcher (Semana / Mes / Año) ---------- */
+function switchLevel(level){
+  if(level === calState.view) return;
+  if(level === "year"){ showYear(calState.year); }
+  else if(level === "month"){ showMonth(calState.year, calState.month); }
+  else if(level === "week"){
+    const now = new Date();
+    const sameMonth = calState.year===now.getFullYear() && calState.month===now.getMonth();
+    const ws = sameMonth ? startOfWeekMonday(now) : startOfWeekMonday(new Date(calState.year, calState.month, 1));
+    showWeek(ws);
+  }
+}
+function renderLevelSwitcher(){
+  const host = $("callevels"); if(!host) return;
+  const activeView = calState.view==="day" ? "week" : calState.view;
+  host.innerHTML = `
+    <button data-level="week" class="${activeView==="week"?"active":""}">Semana</button>
+    <button data-level="month" class="${activeView==="month"?"active":""}">Mes</button>
+    <button data-level="year" class="${activeView==="year"?"active":""}">Año</button>
+  `;
+  host.querySelectorAll("button[data-level]").forEach(b=> b.onclick = ()=> switchLevel(b.dataset.level));
 }
 
 /* ---------- year view ---------- */
@@ -444,7 +468,8 @@ function renderYearView(){
       if(c.outside) return `<div class="mini-day outside">${c.d}</div>`;
       const has = menuForDate(c.iso).length>0;
       const isToday = c.iso===TODAY;
-      return `<div class="mini-day${has?" has-entries":""}${isToday?" today":""}" data-jump="${c.iso}">${c.d}</div>`;
+      const isArmed = c.iso===armedDate;
+      return `<div class="mini-day${has?" has-entries":""}${isToday?" today":""}${isArmed?" armed":""}" data-drop-date="${c.iso}">${c.d}</div>`;
     }).join("");
     minis += `<div class="mini-month">
       <button class="mini-head" data-month="${m}">${MONTH_NAMES[m]}</button>
@@ -463,7 +488,7 @@ function renderYearView(){
   $("yPrev").onclick = ()=> showYear(y-1);
   $("yNext").onclick = ()=> showYear(y+1);
   $("calHost").querySelectorAll(".mini-head").forEach(b=> b.onclick = ()=> showMonth(y, Number(b.dataset.month)));
-  $("calHost").querySelectorAll(".mini-day[data-jump]").forEach(el=> el.onclick = ()=> showDay(el.dataset.jump));
+  wireDayCells();
 }
 
 /* ---------- month view ---------- */
@@ -502,7 +527,7 @@ function renderMonthView(){
         return `<div class="chip"><span class="ct">${escapeHtml(r?r.title:"(receta borrada)")}</span><button class="cx" data-rment="${e.id}" title="Quitar">✕</button></div>`;
       }).join("");
       const more = entries.length>shown.length ? `<div class="chipmore">+${entries.length-shown.length} más</div>` : "";
-      return `<div class="daycell${isToday?" today":""}${c.iso===armedDate?" armed":""}" data-drop-date="${c.iso}" data-goday="${c.iso}">
+      return `<div class="daycell${isToday?" today":""}${c.iso===armedDate?" armed":""}" data-drop-date="${c.iso}">
         <div class="daynum">${c.d}</div>
         <div class="chiplist">${chips}${more}</div>
       </div>`;
@@ -538,7 +563,7 @@ function renderWeekView(){
       const r = recipeById(e.recipeId);
       return `<div class="chip"><span class="ct">${escapeHtml(r?r.title:"(receta borrada)")}</span><button class="cx" data-rment="${e.id}" title="Quitar">✕</button></div>`;
     }).join("");
-    return `<div class="week-day${isToday?" today":""}${iso===armedDate?" armed":""}" data-drop-date="${iso}" data-goday="${iso}">
+    return `<div class="week-day${isToday?" today":""}${iso===armedDate?" armed":""}" data-drop-date="${iso}">
       <div class="wname">${WEEKDAY_LETTERS[(d.getDay()+6)%7]}</div>
       <div class="wnum">${d.getDate()}</div>
       <div class="chiplist">${chips || '<p class="hint">Sin recetas</p>'}</div>
@@ -555,7 +580,7 @@ function renderWeekView(){
   `;
   $("wPrev").onclick = ()=> showWeek(addDays(ws,-7));
   $("wNext").onclick = ()=> showWeek(addDays(ws,7));
-  wireDayCells({selectDayInstead:true});
+  wireDayCells();
 }
 
 /* ---------- day view ---------- */
@@ -589,16 +614,14 @@ function renderDayView(){
   $("calHost").querySelectorAll("[data-rment]").forEach(el=> el.onclick = async (ev)=>{ ev.stopPropagation(); await removeMenuEntry(el.dataset.rment); });
 }
 
-/* ---------- shared: wire day cells (month/week views) ---------- */
-function wireDayCells(opts){
-  opts = opts || {};
+/* ---------- shared: wire day cells (year/month/week views) ---------- */
+function wireDayCells(){
   $("calHost").querySelectorAll("[data-drop-date]").forEach(cell=>{
     cell.addEventListener("click", (e)=>{
       if(e.target.closest("[data-rment]")) return; // handled separately
       const date = cell.dataset.dropDate;
       if(armedRecipeId){ addMenuEntry(date, armedRecipeId); clearArmed(); return; }
-      if(opts.selectDayInstead){ toggleArmedDate(date); return; }
-      if(cell.dataset.goday) showDay(cell.dataset.goday);
+      toggleArmedDate(date);
     });
   });
   $("calHost").querySelectorAll("[data-rment]").forEach(el=> el.addEventListener("click", async (e)=>{

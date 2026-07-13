@@ -190,7 +190,8 @@
   .modal p:not(.sub){font-size:14px;line-height:1.5;margin:6px 0}
 
   /* ---------- Calendar ---------- */
-  .crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0 10px;font-size:13px;color:var(--ink-soft)}
+  .callevels{margin:18px 0 0}
+  .crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 10px;font-size:13px;color:var(--ink-soft)}
   .crumbs button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:2px 0;font-family:var(--sans);text-decoration:underline}
   .crumbs span.sep{color:var(--hair)}
   .crumbs span.cur{color:var(--ink);font-weight:600}
@@ -213,6 +214,7 @@
   .mini-day.outside{color:var(--hair);cursor:default}
   .mini-day.outside:hover{background:none}
   .mini-day.today{outline:1.5px solid var(--accent)}
+  .mini-day.armed{background:var(--accent-soft);outline:2px solid var(--accent);color:var(--accent);font-weight:600}
   .mini-day.has-entries::after{content:"";position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
 
   .week-label-col{width:34px}
@@ -387,6 +389,7 @@
 
   <!-- ===================== CALENDARIO ===================== -->
   <section id="viewCalendario" style="display:none">
+    <div class="tabs callevels" id="callevels"></div>
     <div class="crumbs" id="crumbs"></div>
     <div id="calHost"></div>
   </section>
