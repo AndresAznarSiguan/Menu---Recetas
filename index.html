@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14564d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Menú">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Menú — Recetas y planificación</title>
+<style>
+  :root{
+    --paper:#f4f4ef;
+    --paper-2:#fbfbf8;
+    --ink:#1b1b18;
+    --ink-soft:#55554d;
+    --hair:#d9d9cf;
+    --accent:#14564d;
+    --accent-soft:#e3efeb;
+    --danger:#8a3324;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 30px rgba(0,0,0,.08);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.45;
+    -webkit-text-size-adjust:100%;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px}
+
+  /* Header */
+  header.app{
+    padding:22px 16px 10px;
+    border-bottom:1px solid var(--hair);
+    background:var(--paper);
+    position:sticky;top:0;z-index:5;
+  }
+  header.app .wrap{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;line-height:1.1}
+  .brand h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:26px;
+    letter-spacing:.5px;
+    margin:0;
+  }
+  .brand small{color:var(--ink-soft);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .ghost{
+    background:none;border:1px solid var(--hair);color:var(--ink-soft);
+    padding:7px 11px;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--sans);
+  }
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Quick add */
+  .quick{
+    background:var(--paper-2);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:14px;
+    margin:18px 0;
+  }
+  .quick .qlabel{font-family:var(--serif);font-size:14px;color:var(--accent);margin:0 0 10px;letter-spacing:.04em}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field.wide{grid-column:1 / -1}
+  .field label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  input[type=text], input[type=number], select, textarea{
+    font-family:var(--sans);font-size:15px;color:var(--ink);
+    background:#fff;border:1px solid var(--hair);border-radius:8px;
+    padding:10px 11px;width:100%;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .qrow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+  .qsubmit{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
+    padding:11px 18px;font-size:15px;cursor:pointer;font-family:var(--sans);font-weight:500;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .hint{font-size:12px;color:var(--ink-soft)}
+
+  /* Tabs + search */
+  .controls{display:flex;gap:10px;align-items:center;margin:6px 0 14px;flex-wrap:wrap}
+  .tabs{display:inline-flex;border:1px solid var(--hair);border-radius:9px;overflow:hidden;background:#fff}
+  .tabs button{border:none;background:none;padding:9px 16px;font-size:14px;cursor:pointer;color:var(--ink-soft);font-family:var(--sans)}
+  .tabs button.active{background:var(--accent);color:#fff}
+  .search{flex:1;min-width:160px}
+  .filter{flex:0 0 auto;max-width:46%;font-size:14px;padding:9px 10px}
+  .count{font-size:12px;color:var(--ink-soft);margin-left:auto}
+  .maintabs{margin:18px 0 4px}
+
+  /* Lists */
+  .list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--hair)}
+  .row{display:flex;align-items:center;gap:13px;padding:13px 4px;border-bottom:1px solid var(--hair);cursor:pointer}
+  .row:hover{background:var(--paper-2)}
+  .thumb{
+    width:46px;height:46px;border-radius:7px;flex:none;object-fit:cover;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);font-family:var(--serif);font-size:18px;
+  }
+  .row .meta{flex:1;min-width:0}
+  .row .name{font-family:var(--serif);font-size:18px;line-height:1.2}
+  .row .sub{font-size:13px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .badge{font-size:11px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:20px;padding:3px 9px;white-space:nowrap}
+
+  .empty{text-align:center;padding:48px 20px;color:var(--ink-soft)}
+  .empty b{display:block;font-family:var(--serif);color:var(--ink);font-size:20px;margin-bottom:6px}
+
+  /* Detail overlay */
+  .scrim{position:fixed;inset:0;background:rgba(20,20,16,.38);z-index:20;display:none}
+  .scrim.show{display:block}
+  .panel{
+    position:fixed;top:0;right:0;height:100%;width:min(520px,100%);
+    background:var(--paper);z-index:21;box-shadow:-10px 0 40px rgba(0,0,0,.18);
+    transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;
+  }
+  .panel.show{transform:translateX(0)}
+  .panel header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;border-bottom:1px solid var(--hair)}
+  .panel header .kind{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .panel .body{padding:18px 16px 40px;overflow:auto}
+  .panel h2{font-family:var(--serif);font-weight:600;font-size:24px;margin:2px 0 4px}
+  .panel .dl{margin:14px 0;display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:14px}
+  .panel .dl dt{color:var(--ink-soft);letter-spacing:.04em}
+  .panel .photo{width:100%;border-radius:var(--radius);border:1px solid var(--hair);margin:8px 0;display:block}
+  .panel .section-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:22px 0 8px;border-top:1px solid var(--hair);padding-top:14px}
+
+  .links{display:flex;flex-direction:column;gap:6px}
+  .clink{
+    display:flex;align-items:center;gap:9px;text-align:left;
+    background:#fff;border:1px solid var(--hair);border-radius:8px;padding:9px 11px;cursor:pointer;font-family:var(--sans);font-size:15px;color:var(--ink);
+  }
+  .clink:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .clink::before{content:"›";color:var(--accent);font-size:18px;line-height:1}
+  .clink .cmeta{color:var(--ink-soft);font-size:12px}
+
+  .ingrow{display:grid;grid-template-columns:1fr 64px 96px 26px;gap:6px;margin-bottom:6px;align-items:center}
+  .ingrow input{padding:8px 9px;font-size:14px}
+  .ingx{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:2px;line-height:1}
+  .ingx:hover{color:var(--danger)}
+  .ingtable{margin:6px 0 4px}
+  .ingview{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--hair);font-size:15px}
+  .ingview .iq{color:var(--ink-soft);white-space:nowrap}
+  .steps{margin:6px 0 0;padding-left:22px}
+  .steps li{margin:8px 0}
+
+  .pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .panel .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .danger{background:none;border:1px solid var(--danger);color:var(--danger);padding:9px 13px;border-radius:8px;cursor:pointer;font-size:14px}
+  .editgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .editgrid .wide{grid-column:1/-1}
+  textarea{min-height:74px;resize:vertical}
+  .filebtn{display:inline-block}
+  input[type=file]{display:none}
+  .x{background:none;border:none;font-size:24px;line-height:1;color:var(--ink-soft);cursor:pointer;padding:4px 8px}
+
+  .footer{padding:30px 16px 50px;color:var(--ink-soft);font-size:12px;text-align:center}
+
+  /* sync / info modal */
+  .modal-scrim{position:fixed;inset:0;background:rgba(20,20,16,.42);z-index:30;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-scrim.show{display:flex}
+  .modal{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);width:min(420px,100%);max-height:90vh;overflow:auto;padding:20px}
+  .modal h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 4px}
+  .modal p.sub{color:var(--ink-soft);font-size:13px;margin:0 0 14px;line-height:1.5}
+  .modal .field{margin-bottom:10px;display:flex;flex-direction:column;gap:4px}
+  .modal .field label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .modal .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .modal .msg{font-size:13px;margin-top:10px;min-height:18px}
+  .modal .msg.err{color:var(--danger)}
+  .modal .msg.ok{color:var(--accent)}
+  .syncdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#bbb;margin-right:6px;vertical-align:middle}
+  .syncdot.on{background:var(--accent)}
+  .info-block{margin:14px 0;border-top:1px solid var(--hair);padding-top:12px}
+  .info-block:first-of-type{border-top:none;padding-top:0;margin-top:8px}
+  .info-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .modal ul{margin:8px 0 0;padding-left:18px;font-size:14px}
+  .modal li{margin:3px 0}
+  .modal code{background:var(--accent-soft);padding:1px 5px;border-radius:4px;font-size:13px}
+  .modal p:not(.sub){font-size:14px;line-height:1.5;margin:6px 0}
+
+  /* ---------- Calendar ---------- */
+  .crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0 10px;font-size:13px;color:var(--ink-soft)}
+  .crumbs button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:2px 0;font-family:var(--sans);text-decoration:underline}
+  .crumbs span.sep{color:var(--hair)}
+  .crumbs span.cur{color:var(--ink);font-weight:600}
+
+  .calnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 14px}
+  .calnav h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0;text-transform:capitalize}
+  .navbtn{background:#fff;border:1px solid var(--hair);border-radius:8px;width:36px;height:36px;font-size:16px;cursor:pointer;color:var(--ink-soft);flex:none}
+  .navbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+  .year-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:20px}
+  .mini-month{background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--radius);padding:10px}
+  .mini-head{background:none;border:none;font-family:var(--serif);font-size:15px;color:var(--ink);cursor:pointer;padding:2px 0 8px;text-transform:capitalize;font-weight:600;width:100%;text-align:left}
+  .mini-head:hover{color:var(--accent)}
+  .mini-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:9px;color:var(--ink-soft);text-align:center;margin-bottom:3px;letter-spacing:.03em}
+  .mini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .mini-day{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:5px;cursor:pointer;color:var(--ink);position:relative;
+  }
+  .mini-day:hover{background:var(--accent-soft)}
+  .mini-day.outside{color:var(--hair);cursor:default}
+  .mini-day.outside:hover{background:none}
+  .mini-day.today{outline:1.5px solid var(--accent)}
+  .mini-day.has-entries::after{content:"";position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+
+  .week-label-col{width:34px}
+  .month-grid-wrap{overflow-x:auto}
+  .month-grid{display:grid;grid-template-columns:34px repeat(7,minmax(84px,1fr));gap:4px;min-width:640px}
+  .month-grid .wd-head{font-size:11px;color:var(--ink-soft);text-align:center;padding:4px 0;letter-spacing:.06em;text-transform:uppercase}
+  .weeklab{background:none;border:none;color:var(--ink-soft);font-size:11px;cursor:pointer;writing-mode:vertical-rl;text-orientation:mixed;padding:6px 0}
+  .weeklab:hover{color:var(--accent)}
+  .daycell{
+    background:#fff;border:1px solid var(--hair);border-radius:8px;padding:6px;min-height:88px;display:flex;flex-direction:column;gap:4px;cursor:pointer;
+  }
+  .daycell:hover{border-color:var(--accent)}
+  .daycell.outside{background:var(--paper);opacity:.5}
+  .daycell.today{border-color:var(--accent);border-width:2px}
+  .daycell.dropover{background:var(--accent-soft);border-color:var(--accent)}
+  .daynum{font-size:12px;color:var(--ink-soft);font-weight:600}
+  .daycell.today .daynum{color:var(--accent)}
+  .chiplist{display:flex;flex-direction:column;gap:3px;flex:1;overflow:hidden}
+  .chip{
+    background:var(--accent-soft);color:var(--accent);border-radius:5px;font-size:11px;padding:3px 5px;
+    display:flex;align-items:center;justify-content:space-between;gap:4px;line-height:1.2;
+  }
+  .chip .ct{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip .cx{background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0;flex:none}
+  .chipmore{font-size:10px;color:var(--ink-soft)}
+
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .week-day{background:#fff;border:1px solid var(--hair);border-radius:var(--radius);padding:10px;min-height:150px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+  .week-day:hover{border-color:var(--accent)}
+  .week-day.today{border-color:var(--accent);border-width:2px}
+  .week-day.dropover{background:var(--accent-soft)}
+  .week-day .wname{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
+  .week-day .wnum{font-family:var(--serif);font-size:20px}
+  @media (max-width:720px){ .week-grid{grid-template-columns:1fr 1fr} }
+  @media (max-width:420px){ .week-grid{grid-template-columns:1fr} }
+
+  .dayview-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--hair);margin-top:12px}
+  .dayview-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--hair)}
+  .dayview-row .dname{flex:1;font-family:var(--serif);font-size:17px;cursor:pointer}
+  .dayview-row .dname:hover{color:var(--accent)}
+  .dayview-row .dsub{font-size:12px;color:var(--ink-soft)}
+  .dropzone{
+    border:2px dashed var(--hair);border-radius:var(--radius);padding:14px;text-align:center;color:var(--ink-soft);font-size:13px;margin-top:12px;
+  }
+  .dropzone.dropover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+  .fab{
+    position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:15;
+    background:var(--accent);color:#fff;border:none;border-radius:24px;padding:13px 20px;font-size:14px;
+    box-shadow:var(--shadow);cursor:pointer;font-family:var(--sans);font-weight:500;
+  }
+  .fab:hover{filter:brightness(1.08)}
+
+  .rdrawer{
+    position:fixed;left:0;right:0;bottom:0;z-index:22;background:var(--paper);
+    border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -10px 40px rgba(0,0,0,.18);
+    max-height:72vh;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .22s ease;
+  }
+  .rdrawer.show{transform:translateY(0)}
+  .rdrawer header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+  .rdrawer header h3{font-family:var(--serif);font-size:18px;margin:0}
+  .rdrawer .searchwrap{padding:0 16px 10px}
+  .rdrawer .hintbar{padding:0 16px 8px;font-size:12px;color:var(--ink-soft)}
+  .rnodes{overflow:auto;padding:0 16px 20px;display:flex;flex-direction:column;gap:8px}
+  .rnode{
+    display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--hair);border-radius:8px;
+    padding:10px 12px;cursor:grab;touch-action:pan-y;user-select:none;
+  }
+  .rnode.armed{border-color:var(--accent);background:var(--accent-soft)}
+  .rnode .rthumb{width:32px;height:32px;border-radius:6px;flex:none;object-fit:cover;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);font-family:var(--serif);font-size:14px}
+  .rnode .rname{flex:1;font-size:14px}
+  .rnode .rcat{font-size:11px;color:var(--ink-soft)}
+
+  .dragghost{
+    position:fixed;z-index:50;pointer-events:none;background:var(--accent);color:#fff;
+    padding:8px 12px;border-radius:8px;font-size:13px;box-shadow:var(--shadow);max-width:200px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .armedbar{
+    position:fixed;left:0;right:0;top:0;z-index:40;background:var(--accent);color:#fff;
+    padding:10px 16px;font-size:13px;display:none;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .armedbar.show{display:flex}
+  .armedbar button{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer}
+
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);background:var(--ink);color:#fff;
+    padding:10px 16px;border-radius:8px;font-size:13px;z-index:60;opacity:0;transition:opacity .2s ease;pointer-events:none;
+  }
+  .toast.show{opacity:.95}
+
+  @media (max-width:560px){
+    .qgrid{grid-template-columns:1fr}
+    .qrow3{grid-template-columns:1fr}
+    .panel .dl{grid-template-columns:1fr}
+    .ingrow{grid-template-columns:1fr 52px 74px 22px}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Menú</h1>
+      <small>Recetas &amp; planificación semanal</small>
+    </div>
+    <div class="toolbar">
+      <button class="ghost" id="btnSync">Sincronizar</button>
+      <button class="ghost" id="btnExport">Copia de seguridad</button>
+      <label class="ghost filebtn">Restaurar<input type="file" id="fileImport" accept="application/json"></label>
+    </div>
+  </div>
+</header>
+
+<div class="armedbar" id="armedBar">
+  <span id="armedText"></span>
+  <button id="armedCancel">Cancelar</button>
+</div>
+
+<main class="wrap">
+
+  <div class="tabs maintabs">
+    <button id="tabRecetas" class="active">Recetas</button>
+    <button id="tabCalendario">Calendario</button>
+  </div>
+
+  <!-- ===================== RECETAS ===================== -->
+  <section id="viewRecetas">
+
+    <section class="quick">
+      <p class="qlabel">Añadir receta</p>
+      <div class="qgrid">
+        <div class="field wide">
+          <label for="qTitulo">Título</label>
+          <input type="text" id="qTitulo" placeholder="Nombre de la receta" autocomplete="off">
+        </div>
+      </div>
+      <div class="qrow3">
+        <div class="field">
+          <label for="qCat">Categoría</label>
+          <input type="text" id="qCat" list="catNames" placeholder="Elige o escribe una nueva" autocomplete="off">
+          <datalist id="catNames"></datalist>
+        </div>
+        <div class="field">
+          <label for="qRaciones">Raciones</label>
+          <input type="text" id="qRaciones" placeholder="p. ej. 4" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="qTiempo">Tiempo</label>
+          <input type="text" id="qTiempo" placeholder="p. ej. 30 min" autocomplete="off">
+        </div>
+      </div>
+      <div class="qsubmit">
+        <button class="btn" id="qAdd">Crear receta</button>
+        <label class="ghost filebtn" id="qPhotoLabel">Añadir foto<input type="file" id="qPhoto" accept="image/*"></label>
+        <span id="qPhotoPrev"></span>
+        <span class="hint">Escribe al menos el título y pulsa Crear — luego añades ingredientes y elaboración. Enter para guardar rápido.</span>
+      </div>
+    </section>
+
+    <div class="controls">
+      <input type="text" class="search" id="search" placeholder="Buscar receta…">
+      <select id="filter" class="filter"></select>
+      <span class="count" id="count"></span>
+    </div>
+
+    <div id="listHost"></div>
+  </section>
+
+  <!-- ===================== CALENDARIO ===================== -->
+  <section id="viewCalendario" style="display:none">
+    <div class="crumbs" id="crumbs"></div>
+    <div id="calHost"></div>
+  </section>
+
+</main>
+
+<div class="footer">
+  Tus datos viven solo en este dispositivo. Haz copias de seguridad de vez en cuando.<br>
+  <span id="usage" style="display:inline-block;margin-top:6px;color:var(--accent);cursor:pointer;text-decoration:underline"></span>
+</div>
+
+<button class="fab" id="fabDrawer" style="display:none">🍽 Recetas</button>
+
+<!-- Recipe drag/pick drawer -->
+<div class="rdrawer" id="rdrawer" aria-hidden="true">
+  <header>
+    <h3>Índice de recetas</h3>
+    <button class="x" id="rdrawerClose" aria-label="Cerrar">×</button>
+  </header>
+  <div class="searchwrap"><input type="text" id="rdrawerSearch" placeholder="Buscar…"></div>
+  <div class="hintbar">Arrastra una receta hasta un día, o tócala y luego toca el día donde quieras añadirla.</div>
+  <div class="rnodes" id="rnodes"></div>
+</div>
+
+<!-- Detail panel -->
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-hidden="true">
+  <header>
+    <span class="kind" id="panelKind"></span>
+    <button class="x" id="panelClose" aria-label="Cerrar">×</button>
+  </header>
+  <div class="body" id="panelBody"></div>
+</aside>
+
+<!-- Sync modal -->
+<div class="modal-scrim" id="syncScrim">
+  <div class="modal" id="syncModal"></div>
+</div>
+
+<!-- Storage info modal -->
+<div class="modal-scrim" id="infoScrim">
+  <div class="modal" id="infoModal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<datalist id="unitNames">
+  <option value="g"><option value="kg"><option value="ml"><option value="l">
+  <option value="ud"><option value="cucharada"><option value="cucharadita">
+  <option value="pizca"><option value="taza"><option value="diente"><option value="al gusto">
+</datalist>
+
+<script>
+"use strict";
+</script>
+<script src="app.js"></script>
+</body>
+</html>
