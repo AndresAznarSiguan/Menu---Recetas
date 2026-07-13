@@ -228,6 +228,7 @@
   .daycell.outside{background:var(--paper);opacity:.5}
   .daycell.today{border-color:var(--accent);border-width:2px}
   .daycell.dropover{background:var(--accent-soft);border-color:var(--accent)}
+  .daycell.armed{background:var(--accent-soft);border-color:var(--accent);border-width:2px}
   .daynum{font-size:12px;color:var(--ink-soft);font-weight:600}
   .daycell.today .daynum{color:var(--accent)}
   .chiplist{display:flex;flex-direction:column;gap:3px;flex:1;overflow:hidden}
@@ -244,6 +245,7 @@
   .week-day:hover{border-color:var(--accent)}
   .week-day.today{border-color:var(--accent);border-width:2px}
   .week-day.dropover{background:var(--accent-soft)}
+  .week-day.armed{background:var(--accent-soft);border-color:var(--accent);border-width:2px}
   .week-day .wname{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
   .week-day .wnum{font-family:var(--serif);font-size:20px}
   @media (max-width:720px){ .week-grid{grid-template-columns:1fr 1fr} }
@@ -405,7 +407,7 @@
     <button class="x" id="rdrawerClose" aria-label="Cerrar">×</button>
   </header>
   <div class="searchwrap"><input type="text" id="rdrawerSearch" placeholder="Buscar…"></div>
-  <div class="hintbar">Arrastra una receta hasta un día, o tócala y luego toca el día donde quieras añadirla.</div>
+  <div class="hintbar">Arrastra una receta hasta un día, tócala y luego toca el día, o al revés: toca primero un día de la semana y luego la receta.</div>
   <div class="rnodes" id="rnodes"></div>
 </div>
 

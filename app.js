@@ -502,7 +502,7 @@ function renderMonthView(){
         return `<div class="chip"><span class="ct">${escapeHtml(r?r.title:"(receta borrada)")}</span><button class="cx" data-rment="${e.id}" title="Quitar">✕</button></div>`;
       }).join("");
       const more = entries.length>shown.length ? `<div class="chipmore">+${entries.length-shown.length} más</div>` : "";
-      return `<div class="daycell${isToday?" today":""}" data-drop-date="${c.iso}" data-goday="${c.iso}">
+      return `<div class="daycell${isToday?" today":""}${c.iso===armedDate?" armed":""}" data-drop-date="${c.iso}" data-goday="${c.iso}">
         <div class="daynum">${c.d}</div>
         <div class="chiplist">${chips}${more}</div>
       </div>`;
@@ -538,7 +538,7 @@ function renderWeekView(){
       const r = recipeById(e.recipeId);
       return `<div class="chip"><span class="ct">${escapeHtml(r?r.title:"(receta borrada)")}</span><button class="cx" data-rment="${e.id}" title="Quitar">✕</button></div>`;
     }).join("");
-    return `<div class="week-day${isToday?" today":""}" data-drop-date="${iso}" data-goday="${iso}">
+    return `<div class="week-day${isToday?" today":""}${iso===armedDate?" armed":""}" data-drop-date="${iso}" data-goday="${iso}">
       <div class="wname">${WEEKDAY_LETTERS[(d.getDay()+6)%7]}</div>
       <div class="wnum">${d.getDate()}</div>
       <div class="chiplist">${chips || '<p class="hint">Sin recetas</p>'}</div>
@@ -555,7 +555,7 @@ function renderWeekView(){
   `;
   $("wPrev").onclick = ()=> showWeek(addDays(ws,-7));
   $("wNext").onclick = ()=> showWeek(addDays(ws,7));
-  wireDayCells();
+  wireDayCells({selectDayInstead:true});
 }
 
 /* ---------- day view ---------- */
@@ -590,12 +590,14 @@ function renderDayView(){
 }
 
 /* ---------- shared: wire day cells (month/week views) ---------- */
-function wireDayCells(){
+function wireDayCells(opts){
+  opts = opts || {};
   $("calHost").querySelectorAll("[data-drop-date]").forEach(cell=>{
     cell.addEventListener("click", (e)=>{
       if(e.target.closest("[data-rment]")) return; // handled separately
       const date = cell.dataset.dropDate;
       if(armedRecipeId){ addMenuEntry(date, armedRecipeId); clearArmed(); return; }
+      if(opts.selectDayInstead){ toggleArmedDate(date); return; }
       if(cell.dataset.goday) showDay(cell.dataset.goday);
     });
   });
@@ -637,6 +639,7 @@ function showToast(msg){
 
 /* ================= recipe drawer + drag/tap-to-place ================= */
 let armedRecipeId = null;
+let armedDate = null;
 function renderDrawerList(){
   const t = ($("rdrawerSearch").value||"").trim().toLowerCase();
   let items = recipes;
@@ -659,15 +662,28 @@ $("rdrawerSearch").oninput = ()=> renderDrawerList();
 
 function setArmed(recipeId){
   armedRecipeId = recipeId;
+  armedDate = null;
   const r = recipeById(recipeId);
   $("armedText").textContent = `Colocando "${r?r.title:""}" — toca un día para añadirla.`;
   $("armedBar").classList.add("show");
   renderDrawerList();
+  renderCalendar();
+}
+function toggleArmedDate(date){
+  if(armedDate === date){ clearArmed(); return; }
+  armedRecipeId = null;
+  armedDate = date;
+  $("armedText").textContent = `Añadiendo receta al ${fmtDateLong(date)} — toca una receta del índice.`;
+  $("armedBar").classList.add("show");
+  renderCalendar();
+  openDrawer();
 }
 function clearArmed(){
   armedRecipeId = null;
+  armedDate = null;
   $("armedBar").classList.remove("show");
   renderDrawerList();
+  renderCalendar();
 }
 $("armedCancel").onclick = clearArmed;
 
@@ -707,9 +723,13 @@ function makeDraggable(nodeEl, recipeId){
           addMenuEntry(dropTargetHover.dataset.dropDate, recipeId);
         }
         dropTargetHover = null;
+      } else if(armedDate){
+        addMenuEntry(armedDate, recipeId);
+        clearArmed();
+      } else if(armedRecipeId === recipeId){
+        clearArmed();
       } else {
-        setArmed(armedRecipeId===recipeId ? null : recipeId);
-        if(armedRecipeId===null){ clearArmed(); }
+        setArmed(recipeId);
       }
     }
     document.addEventListener("pointermove", move, {passive:false});
