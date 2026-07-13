@@ -573,7 +573,9 @@ function renderWeekView(){
   $("calHost").innerHTML = `
     <div class="calnav">
       <button class="navbtn" id="wPrev">‹</button>
-      <h2>Semana del ${ws.getDate()} ${MONTH_NAMES[ws.getMonth()]} al ${we.getDate()} ${MONTH_NAMES[we.getMonth()]}</h2>
+      <h2>${ws.getMonth()===we.getMonth()
+        ? `${ws.getDate()} - ${we.getDate()} ${MONTH_NAMES[ws.getMonth()]}`
+        : `${ws.getDate()} ${MONTH_NAMES[ws.getMonth()]} - ${we.getDate()} ${MONTH_NAMES[we.getMonth()]}`}</h2>
       <button class="navbtn" id="wNext">›</button>
     </div>
     <div class="week-grid">${cols}</div>
